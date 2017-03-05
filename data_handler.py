@@ -95,7 +95,6 @@ class DataHandler(object):
             # plt.ylabel('Number of instances')
             plt.title(self.movie_names[top10[i]], fontsize=10)
         plt.savefig('Plots/Basic_Visualization_2_type2')
-        plt.show()
         plt.clf()
 
     def best_hist(self):
@@ -112,6 +111,20 @@ class DataHandler(object):
         plt.savefig('Plots/Basic_Visualization_3')
         plt.clf()
 
+    def genre_hist(self, genre):
+        genre_movies = self.get_movies_by_genre(genre)
+        ratings = {}
+        for i in range(1,6):
+            ratings[i] = 0
+        for i in genre_movies:
+            for j in range(1,6):
+                ratings[j] += self.movie_ratings[i][j]
+        plt.bar(ratings.keys(), ratings.values())
+        plt.title('All ' + genre + ' ratings')
+        plt.xlabel('Rating')
+        plt.ylabel('Number of instances')
+        plt.savefig('Plots/Basic_Visualization_4_' + genre)
+        plt.clf()
 
     def get_most_popular(self):
         top10 = []
@@ -132,7 +145,7 @@ class DataHandler(object):
                 heapq.heappushpop(top10,(avg_rating,i+1))
         return [i[1] for i in top10]
 
-    def get_movies_by_genre(self,genre):
+    def get_movies_by_genre(self, genre):
         genre_id = self.genres.index(genre)
         movies_by_genre = []
         for i in range(self.num_movies):

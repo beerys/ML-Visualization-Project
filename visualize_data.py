@@ -8,5 +8,8 @@ from data_handler import DataHandler
 dh = DataHandler()
 
 #dh.ratings_hist()
-dh.most_popular_hist()
+#dh.most_popular_hist()
 #dh.best_hist()
+genreList = ['Action', 'Musical', 'Documentary']
+for genre in genreList:
+    dh.genre_hist(genre)
