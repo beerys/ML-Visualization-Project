@@ -82,7 +82,6 @@ class DataHandler(object):
 
         #this is the second type
         top10 = self.get_most_popular()
-        plt.title('Ratings of most popular movies')
 
         fig, axes = plt.subplots(nrows=2, ncols=5)
         fig.tight_layout()
@@ -90,12 +89,29 @@ class DataHandler(object):
             plt.subplot(2,5,i)
             ratings = self.movie_ratings[top10[i]]
             del ratings['total']
+            del ratings['rating_sum']
             plt.bar(ratings.keys(),ratings.values())
             # plt.xlabel('Rating')
             # plt.ylabel('Number of instances')
-            plt.title(self.movie_names[top10[i]])
+            plt.title(self.movie_names[top10[i]], fontsize=10)
         plt.savefig('Plots/Basic_Visualization_2_type2')
+        plt.show()
         plt.clf()
+
+    def best_hist(self):
+        top10 = self.get_best()
+        fig, axes = plt.subplots(nrows=2, ncols=5)
+        fig.tight_layout()
+        for i in range(1,11):
+            plt.subplot(2,5,i)
+            ratings = self.movie_ratings[top10[i]]
+            del ratings['total']
+            del ratings['rating_sum']
+            plt.bar(ratings.keys(),ratings.values())
+            plt.title(self.movie_names[top10[i]], fontsize=10)
+        plt.savefig('Plots/Basic_Visualization_3')
+        plt.clf()
+
 
     def get_most_popular(self):
         top10 = []

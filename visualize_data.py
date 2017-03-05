@@ -7,5 +7,6 @@ from data_handler import DataHandler
 
 dh = DataHandler()
 
-dh.ratings_hist()
+#dh.ratings_hist()
 dh.most_popular_hist()
+#dh.best_hist()
