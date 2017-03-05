@@ -7,6 +7,5 @@ from data_handler import DataHandler
 
 dh = DataHandler()
 
-print(dh.rating_data[1])
-
 dh.ratings_hist()
+dh.most_popular_hist()
