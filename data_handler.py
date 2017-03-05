@@ -3,7 +3,6 @@
 #Python 2.7
 #reads data. visualization types can be added as fns
 
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -14,6 +13,7 @@ class DataHandler(object):
         self.movie_file = 'movies.txt'
         self.rating_data = []
         self.movie_data = {}
+        self.num_users = 943
         self.num_movies = 1682
         self.num_ratings = 100000
 
