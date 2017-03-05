@@ -12,17 +12,23 @@ class DataHandler(object):
     def __init__(self):
         self.data_file = 'data.txt'
         self.movie_file = 'movies.txt'
-        self.rating_data = []
-        self.movie_data = {}
         self.num_users = 943
-        self.movie_names = {}
-        self.movie_ratings = {}
         self.num_movies = 1682
         self.num_ratings = 100000
+        self.rating_data = []
+        self.movie_data = {}
+        self.movie_names = {}
+        self.movie_ratings = {}
+        self.genres = ['Unknown', 'Action', 'Adventure', 'Animation', 'Childrens', 'Comedy', 'Crime', 
+                        'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery', 
+                        'Romance', 'Thriller', 'War', 'Western']
+        self.num_genres = len(self.genres)
+
 
         for i in range(self.num_movies):
             self.movie_ratings[i+1] = {}
-            self.movie_ratings[i + 1]['total'] = 0
+            self.movie_ratings[i+1]['total'] = 0
+            self.movie_ratings[i+1]['rating_sum'] = 0.0
             for rating in range(1,6):
                 self.movie_ratings[i+1][rating] = 0
 
@@ -40,6 +46,7 @@ class DataHandler(object):
                 self.rating_data.append([user,movie,rating])
                 self.movie_ratings[movie][rating] += 1
                 self.movie_ratings[movie]['total'] += 1
+                self.movie_ratings[movie]['rating_sum'] += rating
 
         file = open(self.movie_file, 'r')
         for line in file:
@@ -98,3 +105,21 @@ class DataHandler(object):
             else:
                 heapq.heappushpop(top10,(self.movie_ratings[i+1]['total'],i+1))
         return [i[1] for i in top10]
+
+    def get_best(self):
+        top10 = []
+        for i in range(self.num_movies):
+            avg_rating = self.movie_ratings[i+1]['rating_sum']/self.movie_ratings[i+1]['total']
+            if len(top10) <= 10:
+                heapq.heappush(top10,(avg_rating,i+1))
+            else:
+                heapq.heappushpop(top10,(avg_rating,i+1))
+        return [i[1] for i in top10]
+
+    def get_movies_by_genre(self,genre):
+        genre_id = self.genres.index(genre)
+        movies_by_genre = []
+        for i in range(self.num_movies):
+            if self.movie_data[i+1][genre_id] is '1':
+                movies_by_genre.append(i+1)
+        return movies_by_genre
