@@ -5,3 +5,4 @@ output/
 *.pyc
 *.swp
 *.DS_store
+*.idea
