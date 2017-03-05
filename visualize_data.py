@@ -7,4 +7,6 @@ from data_handler import DataHandler
 
 dh = DataHandler()
 
-print(dh.movie_data[2])
+print(dh.rating_data[1])
+
+dh.ratings_hist()
