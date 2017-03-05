@@ -65,7 +65,7 @@ class DataHandler(object):
         plt.clf()
 
     def most_popular_hist(self):
-
+        #this is the first type of visualization tried
         # ratings = {}
         # for i in range(1,6):
         #     ratings[i] = 0
@@ -73,6 +73,7 @@ class DataHandler(object):
         #     for i in range(1,6):
         #         ratings[i] += self.movie_ratings[elem[1]][i]
 
+        #this is the second type
         top10 = self.get_most_popular()
         plt.title('Ratings of most popular movies')
 
@@ -86,7 +87,7 @@ class DataHandler(object):
             # plt.xlabel('Rating')
             # plt.ylabel('Number of instances')
             plt.title(self.movie_names[top10[i]])
-        #plt.savefig('Plots/Basic_Visualization_2_type2')
+        plt.savefig('Plots/Basic_Visualization_2_type2')
         plt.clf()
 
     def get_most_popular(self):
