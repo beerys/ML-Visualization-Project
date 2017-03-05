@@ -45,7 +45,6 @@ class DataHandler(object):
         for line in file:
             line = line.replace('\r','\t')
             line = line.strip().split('\t')
-            #print(line)
             for i in range(self.num_movies):
                 self.movie_names[i+1] = line[21 * i+1]
                 self.movie_data[i+1] = line[21 * i+2:21 * i + 21]
@@ -66,29 +65,35 @@ class DataHandler(object):
         plt.clf()
 
     def most_popular_hist(self):
-        top10 = []
-        for i in range(self.num_movies):
-            if len(top10) <= 10:
-                heapq.heappush(top10,(self.movie_ratings[i+1]['total'],i+1))
-            else:
-                heapq.heappushpop(top10,(self.movie_ratings[i+1]['total'],i+1))
+
         # ratings = {}
         # for i in range(1,6):
         #     ratings[i] = 0
         # for elem in top10:
         #     for i in range(1,6):
         #         ratings[i] += self.movie_ratings[elem[1]][i]
+
+        top10 = self.get_most_popular()
         plt.title('Ratings of most popular movies')
 
         fig, axes = plt.subplots(nrows=2, ncols=5)
         fig.tight_layout()
         for i in range(1,11):
             plt.subplot(2,5,i)
-            ratings = self.movie_ratings[top10[i][1]]
+            ratings = self.movie_ratings[top10[i]]
             del ratings['total']
             plt.bar(ratings.keys(),ratings.values())
             # plt.xlabel('Rating')
             # plt.ylabel('Number of instances')
-            plt.title(self.movie_names[top10[i][1]])
+            plt.title(self.movie_names[top10[i]])
         #plt.savefig('Plots/Basic_Visualization_2_type2')
         plt.clf()
+
+    def get_most_popular(self):
+        top10 = []
+        for i in range(self.num_movies):
+            if len(top10) <= 10:
+                heapq.heappush(top10,(self.movie_ratings[i+1]['total'],i+1))
+            else:
+                heapq.heappushpop(top10,(self.movie_ratings[i+1]['total'],i+1))
+        return [i[1] for i in top10]
