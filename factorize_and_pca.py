@@ -5,6 +5,53 @@ import random
 from data_handler import DataHandler
 from sklearn.decomposition import PCA
 
+
+##################### TA code ##################
+def grad_U(Ui, Yij, Vj, reg, eta):
+    return (1-reg*eta)*Ui + eta * Vj * (Yij - np.dot(Ui,Vj))     
+
+def grad_V(Vj, Yij, Ui, reg, eta):  
+    return (1-reg*eta)*Vj + eta * Ui * (Yij - np.dot(Ui,Vj))
+
+def get_err(U, V, Y):
+    err = 0.0
+    for (i,j,Yij) in Y:
+        err += 0.5 *(Yij - np.dot(U[i-1], V[:,j-1]))**2
+    return err / float(len(Y))
+
+def train_model(M, N, K, eta, reg, Y, eps=0.0001, max_epochs=300):
+    U = np.random.random((M,K)) - 0.5
+    V = np.random.random((K,N)) - 0.5
+    size = Y.shape[0]
+    delta = None
+    print("training reg = %s, k = %s, M = %s, N = %s"%(reg, K, M, N))
+    indices = range(size)    
+    for epoch in range(max_epochs):
+        # Run an epoch of SGD
+        before_E_in = get_err(U, V, Y)
+        np.random.shuffle(indices)
+        for ind in indices:
+            (i,j, Yij) = Y[ind]
+            # Update U[i], V[j]
+            U[i-1] = grad_U(U[i-1], Yij, V[:,j-1], reg, eta)
+            V[:,j-1] = grad_V(V[:,j-1], Yij, U[i-1], reg, eta);
+        # At end of epoch, print E_in
+        E_in = get_err(U,V,Y)
+        print("Epoch %s, E_in (MSE): %s"%(epoch + 1, E_in))
+
+        # Compute change in E_in for first epoch
+        if epoch == 0:
+            delta = before_E_in - E_in
+
+        # If E_in doesn't decrease by some fraction <eps>
+        # of the initial decrease in E_in, stop early            
+        elif before_E_in - E_in < eps * delta:
+            break
+
+    return (U, V, get_err(U,V,Y))
+
+
+##################### Our code ##################
 def calc_error(data,U,V,_lambda=0.0):
 	error = np.linalg.norm(U)**2 + np.linalg.norm(V)**2
 	error *= _lambda/2
@@ -54,6 +101,7 @@ def train_latent_vectors():
 ################################ MAIN ################################
 ######################################################################
 
+
 dh = DataHandler()
 M = dh.num_users
 N = dh.num_movies
@@ -61,18 +109,24 @@ D = dh.num_ratings
 data = np.array(dh.rating_data)
 
 train = False
+K = 20
+eta = 0.01
+reg = 0.0
 
 if train:
-    U,V = train_latent_vectors()
-    pickle.dump(U, open('toSave/U.p', 'wb'))
-    pickle.dump(V, open('toSave/V.p', 'wb'))
+    U,V, err = train_model(M, N, K, eta, reg, data)
+    #U,V = train_latent_vectors()
+    pickle.dump(U, open('toSave/U_TA.p', 'wb'))
+    pickle.dump(V, open('toSave/V_TA.p', 'wb'))
 else:
-    U = pickle.load(open('toLoad/U.p', 'rb'))
-    V = pickle.load(open('toLoad/V.p', 'rb'))
+    U = pickle.load(open('toLoad/U_TA.p', 'rb'))
+    V = pickle.load(open('toLoad/V_TA.p', 'rb')).transpose()
 
-pca = PCA(n_components=2)
-pca.fit(V)
-V_pca = pca.components_
+pca = PCA(n_components=10)
+pca.fit(np.matmul(V.transpose(), V))
+V_pcaComp = pca.components_[0:2, :]
+V_pca = np.matmul(V_pcaComp,V.transpose())
+#U_pca = np.matmul(V_pcaComp,U)
 
 # 10 random movies
 random10 = random.sample(range(N),10)
