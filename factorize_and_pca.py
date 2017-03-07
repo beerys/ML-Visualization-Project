@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.linalg.svd as svd
 import matplotlib.pyplot as plt
 import pickle
 import random
@@ -122,9 +123,10 @@ else:
     U = pickle.load(open('toLoad/U_TA.p', 'rb'))
     V = pickle.load(open('toLoad/V_TA.p', 'rb')).transpose()
 
+#A,E,B = svd(V)
 pca = PCA(n_components=10)
 pca.fit(np.matmul(V.transpose(), V))
-V_pcaComp = pca.components_[0:2, :]
+V_pcaComp = pca.components_[0:2, :]#change this to A
 V_pca = np.matmul(V_pcaComp,V.transpose())
 #U_pca = np.matmul(V_pcaComp,U)
 
