@@ -1,10 +1,11 @@
 import numpy as np
-import scipy.linalg.svd as svd
+#import scipy.linalg.svd as svd
 import matplotlib.pyplot as plt
 import pickle
 import random
 from data_handler import DataHandler
 from sklearn.decomposition import PCA
+from numpy.linalg import svd
 
 
 ##################### TA code ##################
@@ -98,6 +99,16 @@ def train_latent_vectors():
 
 	return (U,V)
 
+def visualize(movies,title):
+	movies_proj = V_proj[:,movies]
+	plt.plot(V_proj[0],V_proj[1], 'o')
+	plt.plot(movies_proj[0],movies_proj[1], 'ro')
+	plt.axhline(0, color='black')
+	plt.axvline(0, color='black')
+	plt.title(title)
+	plt.show()
+
+
 ######################################################################
 ################################ MAIN ################################
 ######################################################################
@@ -106,13 +117,12 @@ def train_latent_vectors():
 dh = DataHandler()
 M = dh.num_users
 N = dh.num_movies
-D = dh.num_ratings
 data = np.array(dh.rating_data)
 
 train = False
 K = 20
 eta = 0.01
-reg = 0.0
+reg = 0.5
 
 if train:
     U,V, err = train_model(M, N, K, eta, reg, data)
@@ -121,44 +131,28 @@ if train:
     pickle.dump(V, open('toSave/V_TA.p', 'wb'))
 else:
     U = pickle.load(open('toLoad/U_TA.p', 'rb'))
-    V = pickle.load(open('toLoad/V_TA.p', 'rb')).transpose()
+    V = pickle.load(open('toLoad/V_TA.p', 'rb'))
 
-#A,E,B = svd(V)
-pca = PCA(n_components=10)
-pca.fit(np.matmul(V.transpose(), V))
-V_pcaComp = pca.components_[0:2, :]#change this to A
-V_pca = np.matmul(V_pcaComp,V.transpose())
+A,E,B = svd(V)
+V_svdComp = A[:,:2]
+V_proj = np.matmul(V_svdComp.transpose(),V)
 #U_pca = np.matmul(V_pcaComp,U)
+
+# Star Wars movies
+starwars_movies = [50, 181, 172]
+visualize(starwars_movies,'Star Wars Movies')
 
 # 10 random movies
 random10 = random.sample(range(N),10)
-random10_pca = V_pca[:,random10]
-plt.plot(V_pca[0],V_pca[1], 'o')
-plt.plot(random10_pca[0],random10_pca[1], 'ro')
-plt.axhline(0, color='black')
-plt.axvline(0, color='black')
-plt.title('10 Random Movies PCA')
-plt.show()
+visualize(random10,'10 Random Movies')
 
 # 10 most popular movies
 most_popular = dh.get_most_popular()
-most_popular_pca = V_pca[:,dh.get_most_popular()]
-plt.plot(V_pca[0],V_pca[1], 'o')
-plt.plot(most_popular_pca[0],most_popular_pca[1], 'ro')
-plt.axhline(0, color='black')
-plt.axvline(0, color='black')
-plt.title('Most Popular Movies PCA')
-plt.show()
+visualize(most_popular,'Most Popular Movies')
 
 # 10 best movies
 best_movies = dh.get_best()
-best_movies_pca = V_pca[:,best_movies]
-plt.plot(V_pca[0],V_pca[1], 'o')
-plt.plot(best_movies_pca[0],best_movies_pca[1], 'ro')
-plt.axhline(0, color='black')
-plt.axvline(0, color='black')
-plt.title('Best Movies PCA')
-plt.show()
+visualize(best_movies,'Best Movies')
 
 # for movie in best_movies:
 # 	print dh.movie_names[movie]
@@ -166,15 +160,11 @@ plt.show()
 # 	print dh.movie_ratings[movie]['total']
 
 # genres
-genre_list = ['Action', 'Horror', 'Western']
+genre_list = ['Film-Noir', 'Horror', 'Western']
 for genre in genre_list:
 	movies_by_genre = dh.get_movies_by_genre(genre)
-	genre_movies_pca = V_pca[:,movies_by_genre]
-	plt.plot(V_pca[0],V_pca[1], 'o')
-	plt.plot(genre_movies_pca[0],genre_movies_pca[1], 'ro')
-	plt.axhline(0, color='black')
-	plt.axvline(0, color='black')
-	plt.title(genre + ' Movies PCA')
-	plt.show()
+	title = genre + ' Movies'
+	visualize(movies_by_genre,title)
+
 
 
