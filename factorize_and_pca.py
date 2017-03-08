@@ -103,7 +103,7 @@ def visualize(movies,title,annotate=False):
 	fig = plt.figure()
 	ax  = fig.add_subplot(111)
 	movies_proj = V_proj[:,movies]
-	plt.plot(V_proj[0],V_proj[1], 'o')
+	#plt.plot(V_proj[0],V_proj[1], 'o')
 	# if annotate:
 	# 	for i in range(len(V_proj[0])):
 	# 		# skip movie names with weird ascii characters
