@@ -99,9 +99,7 @@ def train_latent_vectors():
 
 	return (U,V)
 
-def visualize(movies,title,annotate=False):
-	fig = plt.figure()
-	ax  = fig.add_subplot(111)
+def visualize(movies,title):
 	movies_proj = V_proj[:,movies]
 	#plt.plot(V_proj[0],V_proj[1], 'o')
 	# if annotate:
@@ -111,9 +109,6 @@ def visualize(movies,title,annotate=False):
 	# 			continue
 	# 		ax.annotate(dh.movie_names[i+1], xy=(V_proj[0][i],V_proj[1][i]))
 	plt.plot(movies_proj[0],movies_proj[1], 'ro')
-	if annotate:
-		for i in range(len(movies_proj[0])):
-			ax.annotate(dh.movie_names[movies[i]], xy=(movies_proj[0][i],movies_proj[1][i]))
 	plt.axhline(0, color='black')
 	plt.axvline(0, color='black')
 	plt.title(title)
@@ -162,9 +157,9 @@ V_svdComp = A[:,:2]
 V_proj = np.matmul(V_svdComp.transpose(),V)
 #U_pca = np.matmul(V_pcaComp,U)
 
-# select movies
-select_movies = [50, 181, 172, 69, 22, 550, 144]
-visualize(select_movies,'Select Movies',annotate=True)
+# Star Wars movies
+starwars_movies = [50, 181, 172]
+visualize(starwars_movies,'Star Wars Movies')
 
 # # 10 random movies
 # random10 = random.sample(range(N),10)
@@ -189,6 +184,7 @@ visualize(select_movies,'Select Movies',annotate=True)
 # 	movies_by_genre = dh.get_movies_by_genre(genre)
 # 	title = genre + ' Movies'
 # 	visualize(movies_by_genre,title)
+
 
 
 
