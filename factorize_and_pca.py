@@ -134,15 +134,28 @@ train = False
 K = 20
 eta = 0.01
 reg = 0.5
+regularize = True
+if reg == 0.0:
+	regularize = False
 
 if train:
-    U,V, err = train_model(M, N, K, eta, reg, data)
-    #U,V = train_latent_vectors()
-    pickle.dump(U, open('toSave/U_TA.p', 'wb'))
-    pickle.dump(V, open('toSave/V_TA.p', 'wb'))
+	U,V, err = train_model(M, N, K, eta, reg, data)
+	#U,V = train_latent_vectors()
+	if regularize:
+		pickle.dump(U, open('toSave/U_TA_reg.p', 'wb'))
+		pickle.dump(V, open('toSave/V_TA_reg.p', 'wb'))
+	else:
+		pickle.dump(U, open('toSave/U_TA.p', 'wb'))
+		pickle.dump(V, open('toSave/V_TA.p', 'wb'))
 else:
-    U = pickle.load(open('toLoad/U_TA.p', 'rb'))
-    V = pickle.load(open('toLoad/V_TA.p', 'rb'))
+	if regularize:
+		pickle.dump(open('toLoad/U_TA_reg.p', 'wb'))
+		pickle.dump(open('toLoad/V_TA_reg.p', 'wb'))
+	else:
+		U = pickle.load(open('toLoad/U_TA.p', 'rb'))
+		V = pickle.load(open('toLoad/V_TA.p', 'rb'))
+
+
 
 A,E,B = svd(V)
 V_svdComp = A[:,:2]
@@ -153,29 +166,29 @@ V_proj = np.matmul(V_svdComp.transpose(),V)
 select_movies = [50, 181, 172, 69, 22, 550, 144]
 visualize(select_movies,'Select Movies',annotate=True)
 
-# 10 random movies
-random10 = random.sample(range(N),10)
-visualize(random10,'10 Random Movies')
-
-# 10 most popular movies
-most_popular = dh.get_most_popular()
-visualize(most_popular,'Most Popular Movies')
-
-# 10 best movies
-best_movies = dh.get_best()
-visualize(best_movies,'Best Movies')
-
-# for movie in best_movies:
-# 	print dh.movie_names[movie]
-# 	print dh.movie_ratings[movie]['rating_sum']
-# 	print dh.movie_ratings[movie]['total']
-
-# genres
-genre_list = ['Film-Noir', 'Horror', 'Western']
-for genre in genre_list:
-	movies_by_genre = dh.get_movies_by_genre(genre)
-	title = genre + ' Movies'
-	visualize(movies_by_genre,title)
+# # 10 random movies
+# random10 = random.sample(range(N),10)
+# visualize(random10,'10 Random Movies')
+#
+# # 10 most popular movies
+# most_popular = dh.get_most_popular()
+# visualize(most_popular,'Most Popular Movies')
+#
+# # 10 best movies
+# best_movies = dh.get_best()
+# visualize(best_movies,'Best Movies')
+#
+# # for movie in best_movies:
+# # 	print dh.movie_names[movie]
+# # 	print dh.movie_ratings[movie]['rating_sum']
+# # 	print dh.movie_ratings[movie]['total']
+#
+# # genres
+# genre_list = ['Film-Noir', 'Horror', 'Western']
+# for genre in genre_list:
+# 	movies_by_genre = dh.get_movies_by_genre(genre)
+# 	title = genre + ' Movies'
+# 	visualize(movies_by_genre,title)
 
 
 
