@@ -9,36 +9,51 @@ from numpy.linalg import svd
 
 
 ##################### TA code ##################
-def grad_U(Ui, Yij, Vj, reg, eta):
-    return (1-reg*eta)*Ui + eta * Vj * (Yij - np.dot(Ui,Vj))     
+def grad_U(Ui, Yij, Vj, ai, bj, reg, eta):
+    return (1-reg*eta)*Ui + eta * Vj * (Yij - np.dot(Ui,Vj) + ai + bj)     
 
-def grad_V(Vj, Yij, Ui, reg, eta):  
-    return (1-reg*eta)*Vj + eta * Ui * (Yij - np.dot(Ui,Vj))
+def grad_V(Vj, Yij, Ui, ai, bj, reg, eta):  
+    return (1-reg*eta)*Vj + eta * Ui * (Yij - np.dot(Ui,Vj) + ai + bj)
 
-def get_err(U, V, Y):
+def grad_a(Ui, Yij, Vj, ai, bj, reg, eta):
+    return (1-reg*eta)*ai + eta * (Yij - np.dot(Ui,Vj) + ai + bj)
+
+def grad_b(Vj, Yij, Ui, ai, bj, reg, eta):
+    return (1-reg*eta)*bj + eta * (Yij - np.dot(Ui,Vj) + ai + bj)
+
+def get_err(U, V, a, b, Y):
     err = 0.0
     for (i,j,Yij) in Y:
-        err += 0.5 *(Yij - np.dot(U[i-1], V[:,j-1]))**2
+        err += 0.5 *(Yij - np.dot(U[i-1], V[:,j-1]) + a[i-1] + b[j-1])**2
     return err / float(len(Y))
 
 def train_model(M, N, K, eta, reg, Y, eps=0.0001, max_epochs=300):
     U = np.random.random((M,K)) - 0.5
     V = np.random.random((K,N)) - 0.5
+    if doBias:
+        a = np.zeros(M)
+        b = np.zeros(N)
+    else:
+        a = np.random.random(M) - 0.5
+        b = np.random.random(N) - 0.5
     size = Y.shape[0]
     delta = None
     print("training reg = %s, k = %s, M = %s, N = %s"%(reg, K, M, N))
     indices = range(size)    
     for epoch in range(max_epochs):
         # Run an epoch of SGD
-        before_E_in = get_err(U, V, Y)
+        before_E_in = get_err(U, V, a, b, Y)
         np.random.shuffle(indices)
         for ind in indices:
             (i,j, Yij) = Y[ind]
             # Update U[i], V[j]
-            U[i-1] = grad_U(U[i-1], Yij, V[:,j-1], reg, eta)
-            V[:,j-1] = grad_V(V[:,j-1], Yij, U[i-1], reg, eta);
+            U[i-1] = grad_U(U[i-1], Yij, V[:,j-1], a[i-1], b[j-1], reg, eta)
+            V[:,j-1] = grad_V(V[:,j-1], Yij, U[i-1], a[i-1], b[j-1], reg, eta)
+            # Update a, b
+            a[i-1] = grad_a(U[i-1], Yij, V[:,j-1], a[i-1], b[j-1], reg, eta)
+            b[j-1] = grad_b(V[:,j-1], Yij, U[i-1], a[i-1], b[j-1], reg, eta)
         # At end of epoch, print E_in
-        E_in = get_err(U,V,Y)
+        E_in = get_err(U,V,a,b,Y)
         print("Epoch %s, E_in (MSE): %s"%(epoch + 1, E_in))
 
         # Compute change in E_in for first epoch
@@ -50,7 +65,7 @@ def train_model(M, N, K, eta, reg, Y, eps=0.0001, max_epochs=300):
         elif before_E_in - E_in < eps * delta:
             break
 
-    return (U, V, get_err(U,V,Y))
+    return (U, V, get_err(U,V,a,b,Y))
 
 
 ##################### Our code ##################
@@ -99,21 +114,21 @@ def train_latent_vectors():
 
 	return (U,V)
 
-def visualize(movies,title,annotate=False):
+def visualize(movies,title,annotate=True):
 	fig = plt.figure()
 	ax  = fig.add_subplot(111)
 	movies_proj = V_proj[:, movies]
 	#plt.plot(V_proj[0],V_proj[1], 'o')
-	# if annotate:
-	# 	for i in range(len(V_proj[0])):
-	# 		# skip movie names with weird ascii characters
-	# 		if i in [542, 1004, 1103, 1232, 1251, 1321, 1365, 1622, 1632]:
-	# 			continue
-	# 		ax.annotate(dh.movie_names[i+1], xy=(V_proj[0][i],V_proj[1][i]))
-	plt.plot(movies_proj[0],movies_proj[1], 'ro')
 	if annotate:
-		for i in range(len(movies_proj[0])):
-			ax.annotate(dh.movie_names[movies[i]], xy=(movies_proj[0][i], movies_proj[1][i]))
+		for i in movies:#range(len(V_proj[0])):
+			# skip movie names with weird ascii characters
+			if i in [542, 1004, 1103, 1232, 1251, 1321, 1365, 1622, 1632]:
+				continue
+			ax.annotate(dh.movie_names[i+1], xy=(V_proj[0][i],V_proj[1][i]))
+	plt.plot(movies_proj[0],movies_proj[1], 'ro')
+	#if annotate:
+	#	for i in range(len(movies_proj[0])):
+	#		ax.annotate(dh.movie_names[movies[i]], xy=(movies_proj[0][i], movies_proj[1][i]))
 	plt.axhline(0, color='black')
 	plt.axvline(0, color='black')
 	plt.title(title)
@@ -130,11 +145,12 @@ M = dh.num_users
 N = dh.num_movies
 data = np.array(dh.rating_data)
 
-train = False
+train = True
 K = 20
 eta = 0.01
 reg = 0.0
 regularize = True
+doBias = False
 if reg == 0.0:
 	regularize = False
 
