@@ -144,8 +144,8 @@ if train:
 		pickle.dump(V, open('toSave/V_TA.p', 'wb'))
 else:
 	if regularize:
-		pickle.dump(open('toLoad/U_TA_reg.p', 'wb'))
-		pickle.dump(open('toLoad/V_TA_reg.p', 'wb'))
+		U = pickle.load(open('toLoad/U_TA_reg.p', 'rb'))
+		V = pickle.load(open('toLoad/V_TA_reg.p', 'rb'))
 	else:
 		U = pickle.load(open('toLoad/U_TA.p', 'rb'))
 		V = pickle.load(open('toLoad/V_TA.p', 'rb'))
