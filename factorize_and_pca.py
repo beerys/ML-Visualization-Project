@@ -99,10 +99,21 @@ def train_latent_vectors():
 
 	return (U,V)
 
-def visualize(movies,title):
+def visualize(movies,title,annotate=False):
+	fig = plt.figure()
+	ax  = fig.add_subplot(111)
 	movies_proj = V_proj[:,movies]
 	plt.plot(V_proj[0],V_proj[1], 'o')
+	# if annotate:
+	# 	for i in range(len(V_proj[0])):
+	# 		# skip movie names with weird ascii characters
+	# 		if i in [542, 1004, 1103, 1232, 1251, 1321, 1365, 1622, 1632]:
+	# 			continue
+	# 		ax.annotate(dh.movie_names[i+1], xy=(V_proj[0][i],V_proj[1][i]))
 	plt.plot(movies_proj[0],movies_proj[1], 'ro')
+	if annotate:
+		for i in range(len(movies_proj[0])):
+			ax.annotate(dh.movie_names[movies[i]], xy=(movies_proj[0][i],movies_proj[1][i]))
 	plt.axhline(0, color='black')
 	plt.axvline(0, color='black')
 	plt.title(title)
@@ -138,9 +149,9 @@ V_svdComp = A[:,:2]
 V_proj = np.matmul(V_svdComp.transpose(),V)
 #U_pca = np.matmul(V_pcaComp,U)
 
-# Star Wars movies
-starwars_movies = [50, 181, 172]
-visualize(starwars_movies,'Star Wars Movies')
+# select movies
+select_movies = [50, 181, 172, 69, 22, 550, 144]
+visualize(select_movies,'Select Movies',annotate=True)
 
 # 10 random movies
 random10 = random.sample(range(N),10)
