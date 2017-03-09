@@ -118,12 +118,15 @@ def train_latent_vectors():
 
 	return (U,V)
 
+
 def visualize(movies,title,annotate=True,filename=''):
+	if movies == []:
+		print ('No movies to visualize')
+		return
 	badset = [542, 1004, 1103, 1232, 1251, 1321, 1365, 1622, 1632]
 	badset = [m+1 for m in badset]
 	movies = [m-1 for m in movies]
 	movies_proj = V_proj[:, movies]
-
 	fig = plt.figure()
 	ax  = fig.add_subplot(111)
 	#plt.plot(V_proj[0],V_proj[1], 'o')
@@ -144,6 +147,10 @@ def visualize(movies,title,annotate=True,filename=''):
 	plt.xlim(-2.7,0.7) # boundaries for unregularized
 	plt.ylim(-1.7,1.7)
 	plt.title(title)
+	if size==[]:
+		fig.set_size_inches(12, 8)
+	else:
+		fig.set_size_inches(size[0], size[1])
 	#fig.set_size_inches(9, 6)
 	if len(filename) > 0:
 		plt.savefig('Plots/factorized/'+filename+'.png')
@@ -166,6 +173,7 @@ eta = 0.01
 reg = 0.5
 regularize = False
 bi = 0
+
 
 if train:
 	U,V,err = train_model(M, N, K, eta, reg, bi, data)
@@ -219,6 +227,7 @@ for genre in genre_list:
 	movies_by_genre = dh.get_movies_by_genre(genre)
 	title = genre + ' Movies'
 	visualize(movies_by_genre,title,annotate=False,filename=genre)
+
 
 
 

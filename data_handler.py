@@ -146,9 +146,11 @@ class DataHandler(object):
         return [i[1] for i in top10]
 
     def get_movies_by_genre(self, genre):
+        print('finding '+genre)
         genre_id = self.genres.index(genre)
         movies_by_genre = []
         for i in range(self.num_movies):
             if self.movie_data[i+1][genre_id] is '1':
                 movies_by_genre.append(i+1)
+        print('done finding '+genre)
         return movies_by_genre
