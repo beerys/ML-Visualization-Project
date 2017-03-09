@@ -126,7 +126,7 @@ def visualize(movies,title,annotate=True,filename=''):
 
 	fig = plt.figure()
 	ax  = fig.add_subplot(111)
-	plt.plot(V_proj[0],V_proj[1], 'o')
+	#plt.plot(V_proj[0],V_proj[1], 'o')
 	if annotate:
 		for i in movies:
 			# skip movie names with weird ascii characters
@@ -146,7 +146,7 @@ def visualize(movies,title,annotate=True,filename=''):
 	plt.title(title)
 	#fig.set_size_inches(9, 6)
 	if len(filename) > 0:
-		plt.savefig('Plots/factorized/'+filename)
+		plt.savefig('Plots/factorized/'+filename+'.png')
 	plt.show()
 
 
@@ -196,30 +196,24 @@ V_proj = np.matmul(V_svdComp.transpose(),V)
 # select_movies = [50, 181, 172, 69, 22, 550, 144]
 # visualize(select_movies,'Select Movies',annotate=True)
 
-# # 10 random movies
-# random10 = random.sample(range(N),10)
-# visualize(random10,'10 Random Movies')
+# 10 random movies
+random10 = random.sample(range(N),10)
+visualize(random10,'10 Random Movies',filename='randommovies')
 
-# # 10 most popular movies
-# most_popular = dh.get_most_popular()
-# visualize(most_popular,'Most Popular Movies',annotate=False)
+# 10 most popular movies
+most_popular = dh.get_most_popular()
+visualize(most_popular,'Most Popular Movies',filename='popularmovies')
 
-# # 10 best movies
-# best_movies = dh.get_best()
-# visualize(best_movies,'Best Movies')
+# 10 best movies
+best_movies = dh.get_best()
+visualize(best_movies,'Best Movies',filename='bestmovies')
 
-# for movie in best_movies:
-# 	print dh.movie_names[movie]
-# 	print dh.movie_ratings[movie]['rating_sum']
-# 	print dh.movie_ratings[movie]['total']
-
-genre_list = ['Unknown', 'Action', 'Adventure', 'Animation', 'Childrens', 'Comedy', 'Crime', 
-                        'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery', 
-                        'Romance', 'Thriller', 'War', 'Western']
+# genres
+genre_list = ['Action', 'Childrens', 'Comedy', 'Documentary', 'Film-Noir']
 for genre in genre_list:
 	movies_by_genre = dh.get_movies_by_genre(genre)
 	title = genre + ' Movies'
-	visualize(movies_by_genre,title,annotate=False)
+	visualize(movies_by_genre,title,annotate=False,filename=genre)
 
 
 
