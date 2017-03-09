@@ -9,28 +9,32 @@ from numpy.linalg import svd
 
 
 ##################### TA code ##################
-def grad_U(Ui, Yij, Vj, ai, bj, reg, eta):
-    return (1-reg*eta)*Ui + eta * Vj * (Yij - np.dot(Ui,Vj) + ai + bj)     
+def grad_U(Ui, Yij, Vj, ai, bj, reg, bi, eta):
+    return (1-reg*eta)*Ui + eta * Vj * (Yij - np.dot(Ui,Vj) + bi*ai + bi*bj)     
 
-def grad_V(Vj, Yij, Ui, ai, bj, reg, eta):  
-    return (1-reg*eta)*Vj + eta * Ui * (Yij - np.dot(Ui,Vj) + ai + bj)
+def grad_V(Vj, Yij, Ui, ai, bj, reg, bi, eta):  
+    return (1-reg*eta)*Vj + eta * Ui * (Yij - np.dot(Ui,Vj) + bi*ai + bi*bj)
 
-def grad_a(Ui, Yij, Vj, ai, bj, reg, eta):
-    return (1-reg*eta)*ai + eta * (Yij - np.dot(Ui,Vj) + ai + bj)
+def grad_a(Ui, Yij, Vj, ai, bj, reg, bi, eta):
+    return (1-reg*eta)*ai + eta * (Yij - np.dot(Ui,Vj) + bi*ai + bi*bj)
 
-def grad_b(Vj, Yij, Ui, ai, bj, reg, eta):
-    return (1-reg*eta)*bj + eta * (Yij - np.dot(Ui,Vj) + ai + bj)
+def grad_b(Vj, Yij, Ui, ai, bj, reg, bi, eta):
+    return (1-reg*eta)*bj + eta * (Yij - np.dot(Ui,Vj) + bi*ai + bi*bj)
 
-def get_err(U, V, a, b, Y):
+def get_err(U, V, a, b, Y, reg, bi):
     err = 0.0
     for (i,j,Yij) in Y:
-        err += 0.5 *(Yij - np.dot(U[i-1], V[:,j-1]) + a[i-1] + b[j-1])**2
-    return err / float(len(Y))
+        err += 0.5 *(Yij - np.dot(U[i-1], V[:,j-1]) + bi*a[i-1] + bi*b[j-1])**2
+    return err / float(len(Y)) + reg*reg_err(U,V,a,b,bi)
 
-def train_model(M, N, K, eta, reg, Y, eps=0.0001, max_epochs=300):
+def reg_err(U, V, a, b, bi):
+    ls = (np.linalg.norm(U, ord='fro')**2 + np.linalg.norm(V, ord='fro')**2)
+    return ls + bi*( np.linalg.norm(a) + np.linalg.norm(b) )
+
+def train_model(M, N, K, eta, reg, bi, Y, eps=0.0001, max_epochs=300):
     U = np.random.random((M,K)) - 0.5
     V = np.random.random((K,N)) - 0.5
-    if doBias:
+    if bi == 0:
         a = np.zeros(M)
         b = np.zeros(N)
     else:
@@ -42,18 +46,18 @@ def train_model(M, N, K, eta, reg, Y, eps=0.0001, max_epochs=300):
     indices = range(size)    
     for epoch in range(max_epochs):
         # Run an epoch of SGD
-        before_E_in = get_err(U, V, a, b, Y)
+        before_E_in = get_err(U, V, a, b, Y, reg, bi)
         np.random.shuffle(indices)
         for ind in indices:
             (i,j, Yij) = Y[ind]
             # Update U[i], V[j]
-            U[i-1] = grad_U(U[i-1], Yij, V[:,j-1], a[i-1], b[j-1], reg, eta)
-            V[:,j-1] = grad_V(V[:,j-1], Yij, U[i-1], a[i-1], b[j-1], reg, eta)
+            U[i-1] = grad_U(U[i-1], Yij, V[:,j-1], a[i-1], b[j-1], reg, bi, eta)
+            V[:,j-1] = grad_V(V[:,j-1], Yij, U[i-1], a[i-1], b[j-1], reg, bi, eta)
             # Update a, b
-            a[i-1] = grad_a(U[i-1], Yij, V[:,j-1], a[i-1], b[j-1], reg, eta)
-            b[j-1] = grad_b(V[:,j-1], Yij, U[i-1], a[i-1], b[j-1], reg, eta)
+            a[i-1] = grad_a(U[i-1], Yij, V[:,j-1], a[i-1], b[j-1], reg, bi, eta)
+            b[j-1] = grad_b(V[:,j-1], Yij, U[i-1], a[i-1], b[j-1], reg, bi, eta)
         # At end of epoch, print E_in
-        E_in = get_err(U,V,a,b,Y)
+        E_in = get_err(U,V,a,b,Y,reg,bi)
         print("Epoch %s, E_in (MSE): %s"%(epoch + 1, E_in))
 
         # Compute change in E_in for first epoch
@@ -65,7 +69,7 @@ def train_model(M, N, K, eta, reg, Y, eps=0.0001, max_epochs=300):
         elif before_E_in - E_in < eps * delta:
             break
 
-    return (U, V, get_err(U,V,a,b,Y))
+    return (U, V, get_err(U,V,a,b,Y,0,0))
 
 
 ##################### Our code ##################
@@ -119,12 +123,14 @@ def visualize(movies,title,annotate=True):
 	ax  = fig.add_subplot(111)
 	movies_proj = V_proj[:, movies]
 	#plt.plot(V_proj[0],V_proj[1], 'o')
+	badset = [542, 1004, 1103, 1232, 1251, 1321, 1365, 1622, 1632]
+	badset = [badset[i]+1 for i in range(len(badset))]
 	if annotate:
 		for i in movies:#range(len(V_proj[0])):
 			# skip movie names with weird ascii characters
-			if i in [542, 1004, 1103, 1232, 1251, 1321, 1365, 1622, 1632]:
+			if i in badset:
 				continue
-			ax.annotate(dh.movie_names[i+1], xy=(V_proj[0][i],V_proj[1][i]))
+			ax.annotate(dh.movie_names[i], xy=(V_proj[0][i],V_proj[1][i]))
 	plt.plot(movies_proj[0],movies_proj[1], 'ro')
 	#if annotate:
 	#	for i in range(len(movies_proj[0])):
@@ -132,6 +138,7 @@ def visualize(movies,title,annotate=True):
 	plt.axhline(0, color='black')
 	plt.axvline(0, color='black')
 	plt.title(title)
+	fig.set_size_inches(9, 6)
 	plt.show()
 
 
@@ -148,16 +155,14 @@ data = np.array(dh.rating_data)
 train = True
 K = 20
 eta = 0.01
-reg = 0.0
+reg = 0.5
 regularize = True
-doBias = False
-if reg == 0.0:
-	regularize = False
+bi = 0
 
 if train:
-	U,V, err = train_model(M, N, K, eta, reg, data)
+	U,V, err = train_model(M, N, K, eta, reg, bi, data)
 	#U,V = train_latent_vectors()
-	if regularize:
+	if not reg == 0.0:
 		pickle.dump(U, open('toSave/U_TA_reg.p', 'wb'))
 		pickle.dump(V, open('toSave/V_TA_reg.p', 'wb'))
 	else:
@@ -179,36 +184,35 @@ V_proj = np.matmul(V_svdComp.transpose(),V)
 #U_pca = np.matmul(V_pcaComp,U)
 
 # Star Wars movies
-# starwars_movies = [50, 181, 172]
-# visualize(starwars_movies,'Star Wars Movies',annotate = True)
+starwars_movies = [50, 181, 172]
+visualize(starwars_movies,'Star Wars Movies',annotate = True)
 
 # select movies
 select_movies = [50, 181, 172, 69, 22, 550, 144]
 visualize(select_movies,'Select Movies',annotate=True)
 
-# # 10 random movies
-# random10 = random.sample(range(N),10)
-# visualize(random10,'10 Random Movies')
-#
-# # 10 most popular movies
-# most_popular = dh.get_most_popular()
-# visualize(most_popular,'Most Popular Movies')
-#
-# # 10 best movies
-# best_movies = dh.get_best()
-# visualize(best_movies,'Best Movies')
-#
-# # for movie in best_movies:
-# # 	print dh.movie_names[movie]
-# # 	print dh.movie_ratings[movie]['rating_sum']
-# # 	print dh.movie_ratings[movie]['total']
-#
-# # genres
-# genre_list = ['Film-Noir', 'Horror', 'Western']
-# for genre in genre_list:
-# 	movies_by_genre = dh.get_movies_by_genre(genre)
-# 	title = genre + ' Movies'
-# 	visualize(movies_by_genre,title)
+# 10 random movies
+random10 = random.sample(range(N),10)
+visualize(random10,'10 Random Movies')
+
+# 10 most popular movies
+most_popular = dh.get_most_popular()
+visualize(most_popular,'Most Popular Movies')
+
+# 10 best movies
+best_movies = dh.get_best()
+visualize(best_movies,'Best Movies')
+# for movie in best_movies:
+# 	print dh.movie_names[movie]
+# 	print dh.movie_ratings[movie]['rating_sum']
+# 	print dh.movie_ratings[movie]['total']
+# genres
+
+#genre_list = ['Musical', 'Documentary', 'Action']
+#for genre in genre_list:
+#	movies_by_genre = dh.get_movies_by_genre(genre)
+#	title = genre + ' Movies'
+#	visualize(movies_by_genre,title)
 
 
 
