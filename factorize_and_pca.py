@@ -192,9 +192,14 @@ V_proj = np.matmul(V_svdComp.transpose(),V)
 # starwars_movies = [50, 181, 172]
 # visualize(starwars_movies,'Star Wars Movies')
 
-# # select movies
-# select_movies = [50, 181, 172, 69, 22, 550, 144]
+
+# # # select movies
+#
+# #select_movies = [50, 181, 172, 69, 22, 550, 144]
+# select_movies = [6,7,56,12,35,134,144,176,173,232,271,286]
 # visualize(select_movies,'Select Movies',annotate=True)
+#
+
 
 # 10 random movies
 random10 = random.sample(range(N),10)
