@@ -118,27 +118,35 @@ def train_latent_vectors():
 
 	return (U,V)
 
-def visualize(movies,title,annotate=True):
+def visualize(movies,title,annotate=True,filename=''):
+	badset = [542, 1004, 1103, 1232, 1251, 1321, 1365, 1622, 1632]
+	badset = [m+1 for m in badset]
+	movies = [m-1 for m in movies]
+	movies_proj = V_proj[:, movies]
+
 	fig = plt.figure()
 	ax  = fig.add_subplot(111)
-	movies_proj = V_proj[:, movies]
-	#plt.plot(V_proj[0],V_proj[1], 'o')
-	badset = [542, 1004, 1103, 1232, 1251, 1321, 1365, 1622, 1632]
-	badset = [badset[i]+1 for i in range(len(badset))]
+	plt.plot(V_proj[0],V_proj[1], 'o')
 	if annotate:
-		for i in movies:#range(len(V_proj[0])):
+		for i in movies:
 			# skip movie names with weird ascii characters
 			if i in badset:
 				continue
-			ax.annotate(dh.movie_names[i], xy=(V_proj[0][i],V_proj[1][i]))
+			ax.annotate(dh.movie_names[i+1], xy=(V_proj[0][i],V_proj[1][i]))
 	plt.plot(movies_proj[0],movies_proj[1], 'ro')
 	#if annotate:
 	#	for i in range(len(movies_proj[0])):
 	#		ax.annotate(dh.movie_names[movies[i]], xy=(movies_proj[0][i], movies_proj[1][i]))
 	plt.axhline(0, color='black')
 	plt.axvline(0, color='black')
+	# plt.xlim(-.5,2.5) $ boundaries for regularized
+	# plt.ylim(-1,1)
+	plt.xlim(-2.7,0.7) # boundaries for unregularized
+	plt.ylim(-1.7,1.7)
 	plt.title(title)
-	fig.set_size_inches(9, 6)
+	#fig.set_size_inches(9, 6)
+	if len(filename) > 0:
+		plt.savefig('Plots/factorized/'+filename)
 	plt.show()
 
 
@@ -152,15 +160,15 @@ M = dh.num_users
 N = dh.num_movies
 data = np.array(dh.rating_data)
 
-train = True
+train = False
 K = 20
 eta = 0.01
 reg = 0.5
-regularize = True
+regularize = False
 bi = 0
 
 if train:
-	U,V, err = train_model(M, N, K, eta, reg, bi, data)
+	U,V,err = train_model(M, N, K, eta, reg, bi, data)
 	#U,V = train_latent_vectors()
 	if not reg == 0.0:
 		pickle.dump(U, open('toSave/U_TA_reg.p', 'wb'))
@@ -176,43 +184,42 @@ else:
 		U = pickle.load(open('toLoad/U_TA.p', 'rb'))
 		V = pickle.load(open('toLoad/V_TA.p', 'rb'))
 
-
-
 A,E,B = svd(V)
 V_svdComp = A[:,:2]
 V_proj = np.matmul(V_svdComp.transpose(),V)
-#U_pca = np.matmul(V_pcaComp,U)
 
-# Star Wars movies
-starwars_movies = [50, 181, 172]
-visualize(starwars_movies,'Star Wars Movies',annotate = True)
+# # Star Wars movies
+# starwars_movies = [50, 181, 172]
+# visualize(starwars_movies,'Star Wars Movies')
 
-# select movies
-select_movies = [50, 181, 172, 69, 22, 550, 144]
-visualize(select_movies,'Select Movies',annotate=True)
+# # select movies
+# select_movies = [50, 181, 172, 69, 22, 550, 144]
+# visualize(select_movies,'Select Movies',annotate=True)
 
-# 10 random movies
-random10 = random.sample(range(N),10)
-visualize(random10,'10 Random Movies')
+# # 10 random movies
+# random10 = random.sample(range(N),10)
+# visualize(random10,'10 Random Movies')
 
-# 10 most popular movies
-most_popular = dh.get_most_popular()
-visualize(most_popular,'Most Popular Movies')
+# # 10 most popular movies
+# most_popular = dh.get_most_popular()
+# visualize(most_popular,'Most Popular Movies',annotate=False)
 
-# 10 best movies
-best_movies = dh.get_best()
-visualize(best_movies,'Best Movies')
+# # 10 best movies
+# best_movies = dh.get_best()
+# visualize(best_movies,'Best Movies')
+
 # for movie in best_movies:
 # 	print dh.movie_names[movie]
 # 	print dh.movie_ratings[movie]['rating_sum']
 # 	print dh.movie_ratings[movie]['total']
-# genres
 
-#genre_list = ['Musical', 'Documentary', 'Action']
-#for genre in genre_list:
-#	movies_by_genre = dh.get_movies_by_genre(genre)
-#	title = genre + ' Movies'
-#	visualize(movies_by_genre,title)
+genre_list = ['Unknown', 'Action', 'Adventure', 'Animation', 'Childrens', 'Comedy', 'Crime', 
+                        'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery', 
+                        'Romance', 'Thriller', 'War', 'Western']
+for genre in genre_list:
+	movies_by_genre = dh.get_movies_by_genre(genre)
+	title = genre + ' Movies'
+	visualize(movies_by_genre,title,annotate=False)
 
 
 
